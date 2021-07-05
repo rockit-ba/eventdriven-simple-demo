@@ -1,0 +1,52 @@
+server:
+  port: 10003
+
+spring:
+  cloud:
+    function:
+      definition: recommendAdded
+    stream:
+      bindings:
+        recommendAdded-in-0:
+          group: recommond
+          # destination 消息接收源为 recommendRelationProcessed
+          destination: recommendRelationProcessed
+          consumer:
+            # 只处理一次，异常时直接分派到 DLQ，无需重试
+            max-attempts: 1
+      # 配置专门的rabbit参数
+      rabbit:
+        bindings:
+          recommendAdded-in-0:
+            consumer:
+              # 设置死信队列
+              auto-bind-dlq: true
+
+  datasource:
+    # 动态数据源
+    dynamic:
+      primary: master
+      strict: false
+      datasource:
+        # 真实来源
+        master:
+          url: jdbc:mysql://127.0.0.1:3306/recommend_localstory?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+          username: root
+          password: root
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        # 本地存储
+#        slave_1:
+#          url: jdbc:mysql://127.0.0.1:3306/lucky_auth_localstory?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+#          username: root
+#          password: root
+#          driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    recommend: debug
+    org.springframework: info

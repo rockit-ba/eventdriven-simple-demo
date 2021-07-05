@@ -1,0 +1,6 @@
+relation\UserMapper.class
+relation\AttentionsMapper.class
+relation\RelationApplication.class
+relation\UserPojo.class
+relation\event\ArticlePublishedEventHandle.class
+relation\AttentionsPojo.class

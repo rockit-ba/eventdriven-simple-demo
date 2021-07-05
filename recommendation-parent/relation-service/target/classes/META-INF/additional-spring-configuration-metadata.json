@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.stream.function.autodetect",
+      "type": "java.lang.Boolean",
+      "description": "单个bean 禁用 自动发现功能"
+  }
+] }

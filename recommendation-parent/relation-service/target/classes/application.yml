@@ -1,0 +1,67 @@
+server:
+  port: 10002
+
+spring:
+  cloud:
+    function:
+      # function 函数  包括 in，out
+      definition: recommendRelationProcessed
+    stream:
+      function:
+        # 单个bean function函数禁用 自动发现
+        autodetect: false
+      bindings:
+        # 处理in 定义  recommendRelationProcessed-out-0
+        # 注意这个索引 对于典型的单个输入/输出函数，它总是0，所以它只与具有多个输入和输出参数的函数（通常是特定的反应式的函数）相关。
+        recommendRelationProcessed-in-0:
+          # 提及组，我们通常称为消费者组，不设置该属性为匿名消费者（非持久化的）
+          # 组是kafka中的一个概念，多个组可以订阅一个topic，一个组中可以有多个消费者
+          # 订阅某topic的所有组都接收已发布数据的副本，但每个组中只有一个成员接收来自该topic给定的消息。
+          # 实际开发中我们将消费者示例运行多个，那么相同组的实例只会有一个处理消息，默认是轮训的方式
+          group: relation
+          # destination 定义为 文章已发布消息消费源topic
+          destination: articlePublished
+          consumer:
+            # 只处理一次，异常时直接分派到 DLQ，无需重试
+            max-attempts: 1
+        # 处理out 定义  recommendRelationProcessed-out-0
+        recommendRelationProcessed-out-0:
+          destination: recommendRelationProcessed
+
+      # 配置专门的rabbit参数
+      rabbit:
+        bindings:
+          recommendRelationProcessed-in-0:
+            consumer:
+              # 设置死信队列
+              auto-bind-dlq: true
+
+  datasource:
+    # 动态数据源
+    dynamic:
+      primary: master #设置默认的数据源或者数据源组,默认值即为master
+      strict: false #严格匹配数据源,默认false. true未匹配到指定数据源时抛异常,false使用默认数据源
+      datasource:
+        # 真实来源
+        master:
+          url: jdbc:mysql://127.0.0.1:3306/relation_source?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+          username: root
+          password: root
+          driver-class-name: com.mysql.cj.jdbc.Driver
+        # 本地存储
+#        slave_1:
+#          url: jdbc:mysql://127.0.0.1:3306/lucky_auth_localstory?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&serverTimezone=GMT%2B8
+#          username: root
+#          password: root
+#          driver-class-name: com.mysql.cj.jdbc.Driver
+
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+
+logging:
+  level:
+    relation: debug
+    org.springframework: info
